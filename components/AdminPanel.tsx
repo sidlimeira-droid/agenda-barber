@@ -68,6 +68,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const [localPaymentMethods, setLocalPaymentMethods] = useState<PaymentMethod[]>(paymentMethods);
   const [paymentConfigSuccess, setPaymentConfigSuccess] = useState(false);
 
+  React.useEffect(() => {
+    setLocalHomeConfig(homepageConfig);
+  }, [homepageConfig]);
+
+  React.useEffect(() => {
+    setLocalPaymentMethods(paymentMethods);
+  }, [paymentMethods]);
+
   // Simple calculations for the dashboard
   const totalRevenue = appointments
     .filter(a => a.status !== 'CANCELLED')
@@ -226,7 +234,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     { id: 'dashboard', label: 'Visão Geral', icon: <LayoutDashboard className="w-5 h-5" /> },
     { id: 'agenda', label: 'Agenda do Salão', icon: <Calendar className="w-5 h-5" /> },
     { id: 'bloqueios', label: 'Bloqueios e Folgas', icon: <Ban className="w-5 h-5" /> },
-    { id: 'homepage', label: 'Página Inicial', icon: <Globe className="w-5 h-5 text-gold-400" /> },
+    { id: 'homepage', label: 'Edição do Salão', icon: <Settings className="w-5 h-5 text-gold-400" /> },
     { id: 'pagamentos', label: 'Formas de Pagamento', icon: <CreditCard className="w-5 h-5" /> },
     { id: 'admins', label: 'Administradores', icon: <Shield className="w-5 h-5" /> },
   ] as const;
@@ -656,12 +664,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* TAB 4: HOMEPAGE CONFIG (PÁGINA INICIAL) */}
+          {/* TAB 4: HOMEPAGE CONFIG (EDIÇÃO DO SALÃO & SITE) */}
           {activeTab === 'homepage' && (
             <div className="space-y-6 animate-fade-in">
               <div className="border-b border-slate-800 pb-4">
-                <h3 className="text-xl font-bold text-white">Configurar Página Inicial</h3>
-                <p className="text-sm text-slate-400">Customize os textos, tagline e imagens que aparecem no site para os clientes</p>
+                <h3 className="text-xl font-bold text-white">Edição do Salão & Website</h3>
+                <p className="text-sm text-slate-400">Gerencie a identidade do seu salão (nome, logo, endereço, whatsapp) e personalize o banner principal do seu site</p>
               </div>
 
               <form onSubmit={handleSaveHomeConfig} className="space-y-6">
@@ -669,9 +677,73 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 {homeConfigSuccess && (
                   <div className="bg-green-600/10 border border-green-500/30 p-4 rounded-xl flex items-center gap-3 text-green-400 animate-fade-in">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="text-sm font-bold">Página inicial atualizada com sucesso! Verifique as mudanças no início.</span>
+                    <span className="text-sm font-bold">Configurações do salão e da página inicial atualizadas com sucesso!</span>
                   </div>
                 )}
+
+                {/* Salon Information Fields */}
+                <div className="bg-slate-900/30 p-6 rounded-xl border border-slate-800 space-y-4">
+                  <h4 className="font-bold text-gold-500 text-sm uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-gold-500" /> Identidade & Dados do Salão
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs text-slate-400 uppercase font-bold">Nome do Salão / Barbearia</label>
+                      <input 
+                        type="text" 
+                        value={localHomeConfig.salonName || ''}
+                        onChange={(e) => setLocalHomeConfig({ ...localHomeConfig, salonName: e.target.value })}
+                        placeholder="Ex: BarberKing"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm outline-none focus:border-gold-500"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs text-slate-400 uppercase font-bold">WhatsApp de Atendimento</label>
+                      <input 
+                        type="text" 
+                        value={localHomeConfig.salonWhatsApp || ''}
+                        onChange={(e) => setLocalHomeConfig({ ...localHomeConfig, salonWhatsApp: e.target.value })}
+                        placeholder="Ex: 81 99401-1440"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm outline-none focus:border-gold-500"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs text-slate-400 uppercase font-bold">Endereço Completo</label>
+                      <input 
+                        type="text" 
+                        value={localHomeConfig.salonAddress || ''}
+                        onChange={(e) => setLocalHomeConfig({ ...localHomeConfig, salonAddress: e.target.value })}
+                        placeholder="Ex: Av. Herculano Bandeira, 513 - Pina, Recife - PE"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm outline-none focus:border-gold-500"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs text-slate-400 uppercase font-bold">URL da Logomarca (Imagem)</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="url" 
+                          value={localHomeConfig.salonLogoUrl || ''}
+                          onChange={(e) => setLocalHomeConfig({ ...localHomeConfig, salonLogoUrl: e.target.value })}
+                          placeholder="Link HTTP/HTTPS para a imagem da logomarca..."
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm outline-none focus:border-gold-500"
+                        />
+                        <div className="w-12 h-11 shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
+                          {localHomeConfig.salonLogoUrl ? (
+                            <img src={localHomeConfig.salonLogoUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => { (e.target as any).style.display = 'none' }} />
+                          ) : (
+                            <Scissors className="w-5 h-5 text-slate-500" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   

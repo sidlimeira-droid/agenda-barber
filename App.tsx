@@ -7,7 +7,21 @@ import ClientLogin from './components/ClientLogin';
 import ClientDashboard from './components/ClientDashboard';
 import { AppView, Appointment, AppointmentStatus, BlockedTime, AppNotification, User, HomepageConfig, PaymentMethod } from './types';
 import { SERVICES, BARBERS } from './constants';
-import { Scissors, CalendarCheck, Clock, CheckCircle } from 'lucide-react';
+import { Scissors, CalendarCheck, Clock, CheckCircle, MapPin } from 'lucide-react';
+
+const WhatsAppIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-green-500 inline-block mr-1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.705 1.459h.008c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+);
+
+const getWhatsAppLink = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 11 || digits.length === 10) {
+    return `https://wa.me/55${digits}`;
+  }
+  return `https://wa.me/${digits}`;
+};
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.HOME);
@@ -71,6 +85,10 @@ const App: React.FC = () => {
       feature2Desc: 'Respeitamos seu tempo. Com nosso sistema de agendamento inteligente, você é atendido na hora marcada.',
       feature3Title: 'Produtos Premium',
       feature3Desc: 'Utilizamos apenas produtos de alta qualidade para garantir a saúde do seu cabelo e barba.',
+      salonLogoUrl: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=150&q=80',
+      salonName: 'BarberKing',
+      salonAddress: 'Av. Herculano Bandeira, 513 - Pina, Recife - PE',
+      salonWhatsApp: '81 99401-1440',
     };
   });
 
@@ -246,14 +264,14 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-900 font-sans selection:bg-gold-500 selection:text-white">
-      <Navbar currentView={currentView} onChangeView={(view) => {
+    <div className="min-h-screen flex flex-col bg-slate-900 font-sans selection:bg-gold-500 selection:text-white">
+      <Navbar currentView={currentView} homepageConfig={homepageConfig} onChangeView={(view) => {
           // Clear reschedule data when manually changing views to avoid stale state
           setRescheduleData(null);
           setCurrentView(view);
       }} />
       
-      <main className="pt-6">
+      <main className="pt-6 flex-grow">
         {currentView === AppView.HOME && renderHome()}
         
         {currentView === AppView.BOOKING && (
@@ -320,6 +338,45 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      <footer className="w-full bg-slate-950 border-t border-slate-800/60 py-6 text-center mt-auto" id="app-footer">
+        <div className="max-w-6xl mx-auto px-4 space-y-2.5 text-xs text-slate-400">
+          <p>© {homepageConfig.salonName || "BarberKing"} - Todos os direitos reservados 2026</p>
+          
+          {homepageConfig.salonAddress && (
+            <div className="text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-1">
+              <span>{homepageConfig.salonAddress}</span>
+              <span className="hidden sm:inline text-slate-700">•</span>
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(homepageConfig.salonAddress)}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gold-500 hover:underline hover:text-gold-400 transition-colors font-medium flex items-center gap-1 justify-center"
+              >
+                <MapPin className="w-3.5 h-3.5 text-gold-500" /> Como chegar
+              </a>
+            </div>
+          )}
+
+          <p className="text-slate-500">
+            Desenvolvido por <span className="text-gold-500 font-semibold">Sidney Limeira</span>
+          </p>
+          
+          {homepageConfig.salonWhatsApp && (
+            <div className="pt-1">
+              <a 
+                href={getWhatsAppLink(homepageConfig.salonWhatsApp)} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-full text-[11px] text-slate-300 hover:text-green-400 transition-all font-mono shadow-sm"
+              >
+                <WhatsAppIcon />
+                <span>{homepageConfig.salonWhatsApp}</span>
+              </a>
+            </div>
+          )}
+        </div>
+      </footer>
 
       {/* Success Modal */}
       {showSuccessModal && (

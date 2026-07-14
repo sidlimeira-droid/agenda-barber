@@ -1,13 +1,14 @@
 import React from 'react';
 import { Scissors, User, Calendar, Sparkles, Lock } from 'lucide-react';
-import { AppView } from '../types';
+import { AppView, HomepageConfig } from '../types';
 
 interface NavbarProps {
   currentView: AppView;
+  homepageConfig?: HomepageConfig;
   onChangeView: (view: AppView) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentView, onChangeView }) => {
+const Navbar: React.FC<NavbarProps> = ({ currentView, homepageConfig, onChangeView }) => {
   const navItems = [
     { view: AppView.HOME, label: 'Início', icon: <Scissors className="w-5 h-5" /> },
     { view: AppView.BOOKING, label: 'Agendar', icon: <Calendar className="w-5 h-5" /> },
@@ -19,11 +20,21 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, onChangeView }) => {
     <nav className="bg-slate-950 border-b border-slate-800 sticky top-0 z-50">
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => onChangeView(AppView.HOME)}>
-            <div className="bg-gold-500 p-1.5 rounded-lg">
-              <Scissors className="text-slate-900 w-6 h-6" />
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onChangeView(AppView.HOME)}>
+            <div className="bg-slate-900/60 p-1 rounded-lg border border-slate-800 flex items-center justify-center overflow-hidden w-10 h-10">
+              {homepageConfig?.salonLogoUrl ? (
+                <img src={homepageConfig.salonLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-md" />
+              ) : (
+                <Scissors className="text-gold-500 w-5 h-5" />
+              )}
             </div>
-            <span className="text-xl font-bold tracking-wider text-white">BARBER<span className="text-gold-500">KING</span></span>
+            <span className="text-lg font-black tracking-wider text-white uppercase font-sans">
+              {homepageConfig?.salonName ? (
+                homepageConfig.salonName
+              ) : (
+                <>BARBER<span className="text-gold-500">KING</span></>
+              )}
+            </span>
           </div>
 
           <div className="hidden md:flex space-x-8">

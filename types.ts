@@ -64,6 +64,10 @@ export interface HomepageConfig {
   feature2Desc: string;
   feature3Title: string;
   feature3Desc: string;
+  salonLogoUrl?: string;
+  salonName?: string;
+  salonAddress?: string;
+  salonWhatsApp?: string;
 }
 
 export interface PaymentMethod {
