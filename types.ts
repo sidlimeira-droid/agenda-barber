@@ -30,6 +30,7 @@ export interface Appointment {
   customerName: string;
   customerPhone: string;
   status: AppointmentStatus;
+  paymentMethodId?: string;
 }
 
 export interface BlockedTime {
@@ -50,6 +51,31 @@ export interface AppNotification {
 export interface User {
   name: string;
   phone: string;
+}
+
+export interface HomepageConfig {
+  heroTitle: string;
+  heroSubtitle: string;
+  tagline: string;
+  bgUrl: string;
+  feature1Title: string;
+  feature1Desc: string;
+  feature2Title: string;
+  feature2Desc: string;
+  feature3Title: string;
+  feature3Desc: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  active: boolean;
+  details?: string;
+  bankId?: string; // bank/gateway identifier
+  apiKey?: string;
+  clientId?: string;
+  clientSecret?: string;
+  sandbox?: boolean;
 }
 
 export enum AppView {

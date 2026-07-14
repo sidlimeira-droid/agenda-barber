@@ -5,7 +5,7 @@ import AIStylist from './components/AIStylist';
 import AdminPanel from './components/AdminPanel';
 import ClientLogin from './components/ClientLogin';
 import ClientDashboard from './components/ClientDashboard';
-import { AppView, Appointment, AppointmentStatus, BlockedTime, AppNotification, User } from './types';
+import { AppView, Appointment, AppointmentStatus, BlockedTime, AppNotification, User, HomepageConfig, PaymentMethod } from './types';
 import { SERVICES, BARBERS } from './constants';
 import { Scissors, CalendarCheck, Clock, CheckCircle } from 'lucide-react';
 
@@ -53,6 +53,56 @@ const App: React.FC = () => {
   
   // State for rescheduling
   const [rescheduleData, setRescheduleData] = useState<{ serviceId: string; barberId: string } | null>(null);
+
+  // Home Page Settings State
+  const [homepageConfig, setHomepageConfig] = useState<HomepageConfig>(() => {
+    const saved = localStorage.getItem('barberking_home_config');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      heroTitle: 'ESTILO QUE\nRESPEITA SUA HISTÓRIA',
+      heroSubtitle: 'A união perfeita entre a barbearia clássica e a tecnologia moderna. Agende seu horário ou use nossa IA para descobrir seu novo visual.',
+      tagline: 'Desde 2015',
+      bgUrl: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80',
+      feature1Title: 'Profissionais de Elite',
+      feature1Desc: 'Nossa equipe é formada por barbeiros premiados com vasta experiência em cortes clássicos e modernos.',
+      feature2Title: 'Sem Filas',
+      feature2Desc: 'Respeitamos seu tempo. Com nosso sistema de agendamento inteligente, você é atendido na hora marcada.',
+      feature3Title: 'Produtos Premium',
+      feature3Desc: 'Utilizamos apenas produtos de alta qualidade para garantir a saúde do seu cabelo e barba.',
+    };
+  });
+
+  // Payment Methods Configuration State
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(() => {
+    const saved = localStorage.getItem('barberking_payment_methods');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return [
+      { id: 'pix', name: 'PIX', active: true, details: 'Chave CNPJ: 12.345.678/0001-90 (BarberKing Ltda)' },
+      { id: 'cartao', name: 'Cartão de Crédito/Débito', active: true, details: 'Pago diretamente no balcão' },
+      { id: 'dinheiro', name: 'Dinheiro', active: true, details: 'Desconto de 5% se pago em dinheiro' },
+    ];
+  });
+
+  const handleUpdateHomepageConfig = (config: HomepageConfig) => {
+    setHomepageConfig(config);
+    localStorage.setItem('barberking_home_config', JSON.stringify(config));
+    addNotification('Página inicial configurada com sucesso', 'success');
+  };
+
+  const handleUpdatePaymentMethods = (methods: PaymentMethod[]) => {
+    setPaymentMethods(methods);
+    localStorage.setItem('barberking_payment_methods', JSON.stringify(methods));
+    addNotification('Formas de pagamento atualizadas', 'info');
+  };
+
+  const handleDeleteAppointment = (id: string) => {
+    setAppointments(prev => prev.filter(app => app.id !== id));
+    addNotification('Agendamento excluído do sistema', 'error');
+  };
 
   const addNotification = (message: string, type: AppNotification['type']) => {
     const newNote: AppNotification = {
@@ -141,18 +191,21 @@ const App: React.FC = () => {
     <div className="space-y-12 pb-20">
       {/* Hero Section */}
       <section className="relative h-[500px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80')] bg-cover bg-center opacity-40"></div>
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-40 transition-all duration-500"
+          style={{ backgroundImage: `url('${homepageConfig.bgUrl}')` }}
+        ></div>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
         
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto space-y-6">
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto space-y-6 animate-fade-in">
           <div className="inline-block border border-gold-500 text-gold-500 px-4 py-1 rounded-full text-sm font-semibold tracking-wider uppercase mb-4">
-            Desde 2015
+            {homepageConfig.tagline}
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight">
-            ESTILO QUE <span className="text-gold-500">RESPEITA</span><br />SUA HISTÓRIA
+          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight uppercase whitespace-pre-line">
+            {homepageConfig.heroTitle}
           </h1>
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-            A união perfeita entre a barbearia clássica e a tecnologia moderna. Agende seu horário ou use nossa IA para descobrir seu novo visual.
+          <p className="text-md md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            {homepageConfig.heroSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <button 
@@ -175,18 +228,18 @@ const App: React.FC = () => {
       <section className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-gold-500/50 transition-colors">
           <Scissors className="w-10 h-10 text-gold-500 mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Profissionais de Elite</h3>
-          <p className="text-slate-400">Nossa equipe é formada por barbeiros premiados com vasta experiência em cortes clássicos e modernos.</p>
+          <h3 className="text-xl font-bold text-white mb-2">{homepageConfig.feature1Title}</h3>
+          <p className="text-slate-400">{homepageConfig.feature1Desc}</p>
         </div>
         <div className="bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-gold-500/50 transition-colors">
           <Clock className="w-10 h-10 text-gold-500 mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Sem Filas</h3>
-          <p className="text-slate-400">Respeitamos seu tempo. Com nosso sistema de agendamento inteligente, você é atendido na hora marcada.</p>
+          <h3 className="text-xl font-bold text-white mb-2">{homepageConfig.feature2Title}</h3>
+          <p className="text-slate-400">{homepageConfig.feature2Desc}</p>
         </div>
         <div className="bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-gold-500/50 transition-colors">
           <CheckCircle className="w-10 h-10 text-gold-500 mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Produtos Premium</h3>
-          <p className="text-slate-400">Utilizamos apenas produtos de alta qualidade para garantir a saúde do seu cabelo e barba.</p>
+          <h3 className="text-xl font-bold text-white mb-2">{homepageConfig.feature3Title}</h3>
+          <p className="text-slate-400">{homepageConfig.feature3Desc}</p>
         </div>
       </section>
     </div>
@@ -215,6 +268,7 @@ const App: React.FC = () => {
                 blockedTimes={blockedTimes}
                 currentUser={currentUser}
                 initialData={rescheduleData}
+                paymentMethods={paymentMethods}
              />
           </div>
         )}
@@ -254,7 +308,12 @@ const App: React.FC = () => {
               appointments={appointments} 
               blockedTimes={blockedTimes}
               notifications={notifications}
+              homepageConfig={homepageConfig}
+              onUpdateHomepageConfig={handleUpdateHomepageConfig}
+              paymentMethods={paymentMethods}
+              onUpdatePaymentMethods={handleUpdatePaymentMethods}
               onUpdateStatus={handleUpdateStatus} 
+              onDeleteAppointment={handleDeleteAppointment}
               onBlockTime={handleBlockTime}
               onUnblockTime={handleUnblockTime}
             />

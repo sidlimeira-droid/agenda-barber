@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, CheckCircle2, ChevronRight, User as UserIcon, Scissors, Ban } from 'lucide-react';
-import { Service, Barber, TimeSlot, Appointment, BlockedTime, User } from '../types';
+import { Service, Barber, TimeSlot, Appointment, BlockedTime, User, PaymentMethod } from '../types';
 import { SERVICES, BARBERS, TIME_SLOTS } from '../constants';
 
 interface BookingFormProps {
@@ -9,9 +9,10 @@ interface BookingFormProps {
   blockedTimes: BlockedTime[];
   currentUser: User | null;
   initialData?: { serviceId: string; barberId: string } | null;
+  paymentMethods?: PaymentMethod[]; // Optional to avoid breaks
 }
 
-const BookingForm: React.FC<BookingFormProps> = ({ onBookingComplete, existingAppointments, blockedTimes, currentUser, initialData }) => {
+const BookingForm: React.FC<BookingFormProps> = ({ onBookingComplete, existingAppointments, blockedTimes, currentUser, initialData, paymentMethods = [] }) => {
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
@@ -19,6 +20,15 @@ const BookingForm: React.FC<BookingFormProps> = ({ onBookingComplete, existingAp
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>('');
+
+  // Set default payment method
+  useEffect(() => {
+    const firstActive = paymentMethods.find(m => m.active);
+    if (firstActive && !selectedPaymentMethodId) {
+      setSelectedPaymentMethodId(firstActive.id);
+    }
+  }, [paymentMethods, selectedPaymentMethodId]);
 
   // Initialize with initialData if provided (Reschedule flow)
   useEffect(() => {
@@ -56,7 +66,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ onBookingComplete, existingAp
         time: selectedTime,
         customerName,
         customerPhone,
-        status: 'CONFIRMED'
+        status: 'CONFIRMED',
+        paymentMethodId: selectedPaymentMethodId
       };
       onBookingComplete(newAppointment);
     }
@@ -244,6 +255,43 @@ const BookingForm: React.FC<BookingFormProps> = ({ onBookingComplete, existingAp
             <p className="text-xs text-slate-500">Logado como: {currentUser.name}</p>
         )}
       </div>
+
+      {/* Dynamic Payment Method Selection */}
+      {paymentMethods && paymentMethods.filter(m => m.active).length > 0 && (
+        <div className="space-y-3 pt-4 border-t border-slate-700 animate-fade-in">
+          <h4 className="text-lg font-semibold text-white">Forma de Pagamento</h4>
+          <p className="text-xs text-slate-400">Selecione como deseja realizar o pagamento no local ou via Pix:</p>
+          <div className="grid grid-cols-1 gap-2">
+            {paymentMethods
+              .filter(m => m.active)
+              .map((method) => (
+                <div
+                  key={method.id}
+                  onClick={() => setSelectedPaymentMethodId(method.id)}
+                  className={`cursor-pointer p-3 rounded-lg border transition-all flex flex-col ${
+                    selectedPaymentMethodId === method.id
+                      ? 'bg-slate-800 border-gold-500 ring-1 ring-gold-500'
+                      : 'bg-slate-800/40 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200 text-sm">{method.name}</span>
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      selectedPaymentMethodId === method.id ? 'border-gold-500 bg-gold-500' : 'border-slate-600'
+                    }`}>
+                      {selectedPaymentMethodId === method.id && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-900"></div>
+                      )}
+                    </div>
+                  </div>
+                  {method.details && (
+                    <p className="text-xs text-slate-400 mt-1 pl-0.5">{method.details}</p>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between mt-6">
         <button onClick={() => setStep(step - 1)} className="text-slate-400 hover:text-white px-4">Voltar</button>
